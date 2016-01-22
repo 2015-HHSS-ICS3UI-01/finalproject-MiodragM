@@ -252,6 +252,7 @@ public class Game extends JComponent implements KeyListener, MouseMotionListener
                 moveY = -20;
                 inAir = true;
             }
+            
             //Prevjump is equal to jump when space bar is pressed
             prevJump = jump;
 
