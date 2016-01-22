@@ -13,6 +13,7 @@ import java.awt.event.MouseMotionListener;
 import java.awt.image.BufferedImage;
 import java.io.File;
 import java.util.ArrayList;
+import java.util.Iterator;
 import javax.imageio.ImageIO;
 import javax.swing.JComponent;
 import javax.swing.JFrame;
@@ -38,12 +39,13 @@ public class Game extends JComponent implements KeyListener, MouseMotionListener
     int mouseX = 0;
     int mouseY = 0;
     boolean buttonPressed = false;
-    //player
+    //player variables
     Rectangle player = new Rectangle(10, 200, 25, 50);
     int moveX = 0;
     int moveY = 0;
     int camx = -50;
     boolean inAir = false;
+    //gravity variables
     int gravity = 1;
     int gravBlock = gravity - 2;
     int frameCount = 0;
@@ -54,7 +56,8 @@ public class Game extends JComponent implements KeyListener, MouseMotionListener
     boolean left = false;
     boolean jump = false;
     boolean prevJump = jump;
-    //
+    boolean enter=false;
+    //int for picture being displayed on screen
     int screen=0;
     //block
     ArrayList<Rectangle> blocks = new ArrayList<>();
@@ -68,8 +71,9 @@ public class Game extends JComponent implements KeyListener, MouseMotionListener
     BufferedImage finalJL = loadImage("finalJL.png");
     BufferedImage tile = loadImage("tile.png");
     BufferedImage backG = loadImage("mountain.jpg");
-    BufferedImage startS = loadImage("Bhop_mountainzStart.jpg");
-
+    BufferedImage startS = loadImage("Bhop_mountainzStart2.jpg");
+    BufferedImage gameOvr = loadImage("GameOver.jpg");
+    //image importer
     public static BufferedImage loadImage(String name) {
         BufferedImage img = null;
         try {
@@ -90,19 +94,38 @@ public class Game extends JComponent implements KeyListener, MouseMotionListener
         g.clearRect(0, 0, WIDTH, HEIGHT);
 
         // GAME DRAWING GOES HERE
+        
+        //displays start screen
         if(screen==0){
             g.drawImage(startS, 0, 0, null);
-        }else if(screen==1){
+            //if enter is pressed main game is displayed
+            if(enter){
+                //Screen 1 is equal main game screen 
+                 screen=1;
+            }
+        }else if(screen==2){
+            g.drawImage(gameOvr, 0, 0, null);
+            if (enter){
+                screen=1;
+            }
+        }
+        
+        //if screen is equal to 1 main game is displayed
+        if(screen==1){
         g.drawImage(backG, 0, 0, null);
-
+        
+        //sets colour to black
         g.setColor(Color.black);
 
+        //loops array to move blocks on the x axis when player is moving
         for (Rectangle block : blocks) {
             g.fillRect(block.x - camx, block.y, block.width, block.height);
         }
-
+        //sets colour to black
         g.setColor(Color.black);
         //g.fillRect(0, 500, 5, 25);
+        
+        //Animation for when the player is not moving left or right but is jumping
         if (moveX == 0 && inAir) {
             if (moveX == 0 && moveY == 0 && !inAir) {
                 g.drawImage(initialJ, player.x - camx, player.y - 45, player.width + 55, player.height + 50, null);
@@ -112,10 +135,11 @@ public class Game extends JComponent implements KeyListener, MouseMotionListener
                 g.drawImage(finalJ, player.x - camx, player.y - 45, player.width + 55, player.height + 50, null);
             }
         }
+        //Picture for when the player is standing still
         if (!inAir && moveX == 0) {
             g.drawImage(initialJ, player.x - camx, player.y - 45, player.width + 55, player.height + 50, null);
         }
-
+        //Animations for when player is moving to the left
         if (left) {
             if (moveY == 0 && !inAir) {
                 g.drawImage(InitialJL, player.x - camx, player.y - 45, player.width + 55, player.height + 50, null);
@@ -124,6 +148,7 @@ public class Game extends JComponent implements KeyListener, MouseMotionListener
             } else if (moveY > -5 && moveY < 5 && inAir) {
                 g.drawImage(finalJL, player.x - camx, player.y - 45, player.width + 55, player.height + 50, null);
             }
+            //Animations for when player is moving to the right
         } else if (right) {
             if (moveY == 0 && !inAir) {
                 g.drawImage(initialJ, player.x - camx, player.y - 45, player.width + 55, player.height + 50, null);
@@ -133,6 +158,7 @@ public class Game extends JComponent implements KeyListener, MouseMotionListener
                 g.drawImage(finalJ, player.x - camx, player.y - 45, player.width + 55, player.height + 50, null);
             }
         }
+        //draw the tile image on block that is specified
         g.drawImage(tile, 0 - camx, 500, 50, 25, null);
 
 
@@ -143,14 +169,13 @@ public class Game extends JComponent implements KeyListener, MouseMotionListener
         g.drawImage(tile, 200 - camx, 500, 90, 30, null);
 
 
-
-        if (buttonPressed) {
-            g.setColor(Color.green);
-            for(Rectangle blockG : blocksG){
-                g.fillRect(blockG.x-camx, blockG.y, blockG.width, blockG.height);
-            }
+        //when left mouse click is pressed blocks appear 
+        
         }
-        }
+        if (player.x >= 0 && player.y <= 900 && player.y >= 800){
+        screen=2;
+    }
+        
     }
         
 
@@ -179,6 +204,8 @@ public class Game extends JComponent implements KeyListener, MouseMotionListener
         long startTime;
         long deltaTime;
 
+        blockGen();
+        
         // the main game loop section
         // game will end if you set done = false;
         boolean done = false;
@@ -190,20 +217,23 @@ public class Game extends JComponent implements KeyListener, MouseMotionListener
             // GAME LOGIC STARTS HERE 
             x = mouseX;
             y = mouseY;
-
+            
+            //if A is being pressed the player moves left -5 pixels
             if (left) {
                 moveX = -5;
+                //if D is being pressed the player moves right 5 pixels
             } else if (right) {
                 moveX = 5;
+                //if player is standing still x is equal to 0
             } else {
                 moveX = 0;
             }
-
+            //Makes gravity between 199 and 291 on the x axis lower between 250 and 500 on the y axis
             if (player.x >= 199 && player.x <= 291 && player.y <= 500 && player.y >= 250) {
                 moveY = moveY + gravBlock;
             }
-
-            if (player.x >= 0 && player.y <= 900 && player.y >= 750) {
+            //if the players x is equal to or greater than 0 and the players y is between 750 and 900 the player is reset to starting position
+            if (player.x >= 0 && player.y <= 900 && player.y >= 800) {
                 player.x = 10;
                 player.y = 475;
                 camx = player.x-50;
@@ -222,7 +252,7 @@ public class Game extends JComponent implements KeyListener, MouseMotionListener
                 moveY = -20;
                 inAir = true;
             }
-
+            //Prevjump is equal to jump when space bar is pressed
             prevJump = jump;
 
             //move the player
@@ -236,7 +266,7 @@ public class Game extends JComponent implements KeyListener, MouseMotionListener
                 moveY = 0;
                 inAir = false;
             }
-
+            //collision for blocks that are drawn
             for (Rectangle block : blocks) {
                 //is the player hitting a block
                 if (player.intersects(block)) {
@@ -246,6 +276,7 @@ public class Game extends JComponent implements KeyListener, MouseMotionListener
                         if (player.x < block.x) {
                             player.x = player.x + intersection.width;
                             camx = camx + intersection.width;
+                            
                         }
                     } else {//fix the y
                         //hit the block with my head
@@ -260,48 +291,25 @@ public class Game extends JComponent implements KeyListener, MouseMotionListener
                     }
                 }
             }
+            //if left mouse button is pressed blocks show and have collision 
             
-            if(buttonPressed){
-            for (Rectangle block : blocksG) {
-                //is the player hitting a block
-                if (player.intersects(block)) {
-                    //get the collision rectangle
-                    Rectangle intersection = player.intersection(block);
-                    if (intersection.width < intersection.height) {
-                        if (player.x < block.x) {
-                            player.x = player.x + intersection.width;
-                            camx = camx + intersection.width;
-                        }
-                    } else {//fix the y
-                        //hit the block with my head
-                        if (player.y > block.y) {
-                            player.y = player.y + intersection.height;
-                            moveY = 0;
-                        } else {
-                            player.y = player.y - intersection.height;
-                            moveY = 0;
-                            inAir = false;
-                        }
-                    }
-                }
-            }
-            }
-
+            
+            //if player x is less than 0 player x equals 0 and the camera is -50 pixels behind
             if (player.x < 0) {
                 player.x = 0;
                 camx = -50;
                 
             }
-
+            //if the player y is less than 0 player y is equal to 0
             if (player.y < 0) {
                 player.y = 0;
             }
 
-            if (player.x >= 200 && player.y >= 500 && !inAir) {
-                player.x = 0;
-            }
+          Iterator<Rectangle> it = blocks.iterator();
+           
 
-
+            
+            
             // GAME LOGIC ENDS HERE 
 
             // update the drawing (calls paintComponent)
@@ -313,6 +321,7 @@ public class Game extends JComponent implements KeyListener, MouseMotionListener
             // USING SOME SIMPLE MATH
             deltaTime = System.currentTimeMillis() - startTime;
             if (deltaTime > desiredTime) {
+                 
                 //took too much time, don't wait
             } else {
                 try {
@@ -368,6 +377,8 @@ public class Game extends JComponent implements KeyListener, MouseMotionListener
             jump = true;
         } else if (key == KeyEvent.VK_SPACE) {
             jump = true;
+        }else if(key==KeyEvent.VK_ENTER){
+            enter=true;
         }
     }
 
@@ -382,6 +393,8 @@ public class Game extends JComponent implements KeyListener, MouseMotionListener
             jump = false;
         } else if (key == KeyEvent.VK_SPACE) {
             jump = false;
+        }else if(key==KeyEvent.VK_ENTER){
+            enter=false;
         }
     }
 
@@ -422,4 +435,15 @@ public class Game extends JComponent implements KeyListener, MouseMotionListener
     @Override
     public void mouseExited(MouseEvent e) {
     }
+    
+    
+    public void blockGen(){
+        for(int i =0; i<50;i++){
+            int rbX=(int) (Math.random()*(2500-400+1));
+                blocks.add(new Rectangle(rbX+100,500,30,30));
+            }
+    }
+    
 }
+
+
