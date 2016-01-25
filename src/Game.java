@@ -1,7 +1,6 @@
 
 import java.awt.Color;
 
-
 import java.awt.Dimension;
 import java.awt.Graphics;
 import java.awt.Rectangle;
@@ -32,7 +31,6 @@ public class Game extends JComponent implements KeyListener, MouseMotionListener
     long desiredFPS = 60;
     long desiredTime = (1000) / desiredFPS;
     //Player position variables
-    int gX=600;
     int x = 100;
     int y = 500;
     //mouse variables
@@ -43,7 +41,9 @@ public class Game extends JComponent implements KeyListener, MouseMotionListener
     Rectangle player = new Rectangle(10, 200, 25, 50);
     int moveX = 0;
     int moveY = 0;
+    //int for the cameras x axis
     int camx = -50;
+    //inAir is equal to false because player starts on ground
     boolean inAir = false;
     //gravity variables
     int gravity = 1;
@@ -56,12 +56,11 @@ public class Game extends JComponent implements KeyListener, MouseMotionListener
     boolean left = false;
     boolean jump = false;
     boolean prevJump = jump;
-    boolean enter=false;
+    boolean enter = false;
     //int for picture being displayed on screen
-    int screen=0;
-    //block
+    int screen = 0;
+    //block array
     ArrayList<Rectangle> blocks = new ArrayList<>();
-    ArrayList<Rectangle> blocksG = new ArrayList<>();
     //images
     BufferedImage initialJ = loadImage("InitialJump.png");
     BufferedImage secJump = loadImage("secJump.png");
@@ -73,6 +72,8 @@ public class Game extends JComponent implements KeyListener, MouseMotionListener
     BufferedImage backG = loadImage("mountain.jpg");
     BufferedImage startS = loadImage("Bhop_mountainzStart2.jpg");
     BufferedImage gameOvr = loadImage("GameOver.jpg");
+    BufferedImage winner = loadImage("winner.jpg");
+
     //image importer
     public static BufferedImage loadImage(String name) {
         BufferedImage img = null;
@@ -94,109 +95,101 @@ public class Game extends JComponent implements KeyListener, MouseMotionListener
         g.clearRect(0, 0, WIDTH, HEIGHT);
 
         // GAME DRAWING GOES HERE
-        
         //displays start screen
-        if(screen==0){
+        if (screen == 0) {
             g.drawImage(startS, 0, 0, null);
             //if enter is pressed main game is displayed
-            if(enter){
+            if (enter) {
                 //Screen 1 is equal main game screen 
-                 screen=1;
+                screen = 1;
             }
-        }else if(screen==2){
+            //else if the screen is equal to 2 the GameOver screen with appear
+        } else if (screen == 2) {
             g.drawImage(gameOvr, 0, 0, null);
-            if (enter){
-                screen=1;
+            //if enter is pressed screen 1 is shown
+            if (enter) {
+                screen = 1;
             }
-        }
-        
+        }else if(screen==3){
+           g.drawImage(winner, 0, 0, null);
+       }
+
         //if screen is equal to 1 main game is displayed
-        if(screen==1){
-        g.drawImage(backG, 0, 0, null);
-        
-        //sets colour to black
-        g.setColor(Color.black);
+        if (screen == 1) {
+            g.drawImage(backG, 0, 0, null);
 
-        //loops array to move blocks on the x axis when player is moving
-        for (Rectangle block : blocks) {
-            g.fillRect(block.x - camx, block.y, block.width, block.height);
-        }
-        //sets colour to black
-        g.setColor(Color.black);
-        //g.fillRect(0, 500, 5, 25);
-        
-        //Animation for when the player is not moving left or right but is jumping
-        if (moveX == 0 && inAir) {
-            if (moveX == 0 && moveY == 0 && !inAir) {
+            //sets colour to black
+            g.setColor(Color.black);
+
+            //loops array to move blocks on the x axis when player is moving
+            for (Rectangle block : blocks) {
+                g.fillRect(block.x - camx, block.y, block.width, block.height);
+            }
+            //sets colour to black
+            g.setColor(Color.black);
+
+            //Animation for when the player is not moving left or right but is jumping
+            if (moveX == 0 && inAir) {
+                if (moveX == 0 && moveY == 0 && !inAir) {
+                    g.drawImage(initialJ, player.x - camx, player.y - 45, player.width + 55, player.height + 50, null);
+                } else if (moveX == 0 && moveY <= -5 || moveY >= 5 && inAir) {
+                    g.drawImage(secJump, player.x - camx, player.y - 45, player.width + 50, player.height + 50, null);
+                } else if (moveX == 0 && moveY > -5 && moveY < 5 && inAir) {
+                    g.drawImage(finalJ, player.x - camx, player.y - 45, player.width + 55, player.height + 50, null);
+                }
+            }
+            //Picture for when the player is standing still
+            if (!inAir && moveX == 0) {
                 g.drawImage(initialJ, player.x - camx, player.y - 45, player.width + 55, player.height + 50, null);
-            } else if (moveX == 0 && moveY <= -5 || moveY >= 5 && inAir) {
-                g.drawImage(secJump, player.x - camx, player.y - 45, player.width + 50, player.height + 50, null);
-            } else if (moveX == 0 && moveY > -5 && moveY < 5 && inAir) {
-                g.drawImage(finalJ, player.x - camx, player.y - 45, player.width + 55, player.height + 50, null);
+            }
+            //Animations for when player is moving to the left
+            if (left) {
+                if (moveY == 0 && !inAir) {
+                    g.drawImage(InitialJL, player.x - camx, player.y - 45, player.width + 55, player.height + 50, null);
+                } else if (moveY <= -5 || moveY >= 5 && inAir) {
+                    g.drawImage(secJL, player.x - camx, player.y - 45, player.width + 50, player.height + 50, null);
+                } else if (moveY > -5 && moveY < 5 && inAir) {
+                    g.drawImage(finalJL, player.x - camx, player.y - 45, player.width + 55, player.height + 50, null);
+                }
+                //Animations for when player is moving to the right
+            } else if (right) {
+                if (moveY == 0 && !inAir) {
+                    g.drawImage(initialJ, player.x - camx, player.y - 45, player.width + 55, player.height + 50, null);
+                } else if (moveY <= -5 || moveY >= 5 && inAir) {
+                    g.drawImage(secJump, player.x - camx, player.y - 45, player.width + 50, player.height + 50, null);
+                } else if (moveY > -5 && moveY < 5 && inAir) {
+                    g.drawImage(finalJ, player.x - camx, player.y - 45, player.width + 55, player.height + 50, null);
+                }
+            }
+            //draw the tile image on block that is specified
+            g.drawImage(tile, 0 - camx, 500, 50, 25, null);
+            g.setColor(Color.black);
+            g.fillRect(200 - camx, 500, 90, 30);
+            g.fillRect(500 - camx, 500, 60, 30);
+            g.drawImage(tile, 200 - camx, 500, 90, 30, null);
+            //Randomly genetared blocks have texture
+            for (Rectangle block : blocks) {
+                g.drawImage(tile, block.x - camx, block.y, block.width, block.height, null);
             }
         }
-        //Picture for when the player is standing still
-        if (!inAir && moveX == 0) {
-            g.drawImage(initialJ, player.x - camx, player.y - 45, player.width + 55, player.height + 50, null);
+        //if the character reaches a x of 0 or greater and the y position is between 800 and 900 the gameover screen with appear
+        if (player.x >= 0 && player.y <= 900 && player.y >= 800) {
+            screen = 2;
         }
-        //Animations for when player is moving to the left
-        if (left) {
-            if (moveY == 0 && !inAir) {
-                g.drawImage(InitialJL, player.x - camx, player.y - 45, player.width + 55, player.height + 50, null);
-            } else if (moveY <= -5 || moveY >= 5 && inAir) {
-                g.drawImage(secJL, player.x - camx, player.y - 45, player.width + 50, player.height + 50, null);
-            } else if (moveY > -5 && moveY < 5 && inAir) {
-                g.drawImage(finalJL, player.x - camx, player.y - 45, player.width + 55, player.height + 50, null);
-            }
-            //Animations for when player is moving to the right
-        } else if (right) {
-            if (moveY == 0 && !inAir) {
-                g.drawImage(initialJ, player.x - camx, player.y - 45, player.width + 55, player.height + 50, null);
-            } else if (moveY <= -5 || moveY >= 5 && inAir) {
-                g.drawImage(secJump, player.x - camx, player.y - 45, player.width + 50, player.height + 50, null);
-            } else if (moveY > -5 && moveY < 5 && inAir) {
-                g.drawImage(finalJ, player.x - camx, player.y - 45, player.width + 55, player.height + 50, null);
-            }
-        }
-        //draw the tile image on block that is specified
-        g.drawImage(tile, 0 - camx, 500, 50, 25, null);
-
-
-        g.setColor(Color.black);
-        g.fillRect(200 - camx, 500, 90, 30);
-        g.fillRect(500 - camx, 500, 60, 30);
-
-        g.drawImage(tile, 200 - camx, 500, 90, 30, null);
-
-
-        //when left mouse click is pressed blocks appear 
-        
-        }
-        if (player.x >= 0 && player.y <= 900 && player.y >= 800){
-        screen=2;
+        //if player reaches x of 2500 or greater and y of 500 winner screen appears
+       if (player.x <= 2500 && player.y ==500) {
+            screen = 3;
+       }
     }
-        
-    }
-        
-
         // GAME DRAWING ENDS HERE
-    
-
     // The main game loop
     // In here is where all the logic for my game will go
     public void run() {
         //intial things to do before game starts
         //add blocks
-        //blocks.add(new Rectangle(400, 450, 100, 50));
-
         blocks.add(new Rectangle(0, 500, 50, 25));
         blocks.add(new Rectangle(200, 500, 90, 30));
         blocks.add(new Rectangle(500, 500, 60, 30));
-        blocksG.add(new Rectangle(600, 450, 30, 30));
-        blocksG.add(new Rectangle(750, 500, 60, 30));
-        blocksG.add(new Rectangle(850, 500, 90, 30));
-        
-        
         //END INTIAL THINGS TO DO
 
         // Used to keep track of time used to draw and update the game
@@ -205,7 +198,7 @@ public class Game extends JComponent implements KeyListener, MouseMotionListener
         long deltaTime;
 
         blockGen();
-        
+
         // the main game loop section
         // game will end if you set done = false;
         boolean done = false;
@@ -217,7 +210,7 @@ public class Game extends JComponent implements KeyListener, MouseMotionListener
             // GAME LOGIC STARTS HERE 
             x = mouseX;
             y = mouseY;
-            
+
             //if A is being pressed the player moves left -5 pixels
             if (left) {
                 moveX = -5;
@@ -236,7 +229,7 @@ public class Game extends JComponent implements KeyListener, MouseMotionListener
             if (player.x >= 0 && player.y <= 900 && player.y >= 800) {
                 player.x = 10;
                 player.y = 475;
-                camx = player.x-50;
+                camx = player.x - 50;
             }
 
             frameCount++;
@@ -252,7 +245,7 @@ public class Game extends JComponent implements KeyListener, MouseMotionListener
                 moveY = -20;
                 inAir = true;
             }
-            
+
             //Prevjump is equal to jump when space bar is pressed
             prevJump = jump;
 
@@ -274,10 +267,9 @@ public class Game extends JComponent implements KeyListener, MouseMotionListener
                     //get the collision rectangle
                     Rectangle intersection = player.intersection(block);
                     if (intersection.width < intersection.height) {
-                        if (player.x < block.x) {
+                        if (player.x == block.x) {
                             player.x = player.x + intersection.width;
                             camx = camx + intersection.width;
-                            
                         }
                     } else {//fix the y
                         //hit the block with my head
@@ -293,36 +285,27 @@ public class Game extends JComponent implements KeyListener, MouseMotionListener
                 }
             }
             //if left mouse button is pressed blocks show and have collision 
-            
-            
+
             //if player x is less than 0 player x equals 0 and the camera is -50 pixels behind
             if (player.x < 0) {
                 player.x = 0;
                 camx = -50;
-                
+
             }
             //if the player y is less than 0 player y is equal to 0
             if (player.y < 0) {
                 player.y = 0;
             }
-
-          Iterator<Rectangle> it = blocks.iterator();
-           
-
-            
-            
             // GAME LOGIC ENDS HERE 
 
             // update the drawing (calls paintComponent)
             repaint();
 
-
-
             // SLOWS DOWN THE GAME BASED ON THE FRAMERATE ABOVE
             // USING SOME SIMPLE MATH
             deltaTime = System.currentTimeMillis() - startTime;
             if (deltaTime > desiredTime) {
-                 
+
                 //took too much time, don't wait
             } else {
                 try {
@@ -378,8 +361,8 @@ public class Game extends JComponent implements KeyListener, MouseMotionListener
             jump = true;
         } else if (key == KeyEvent.VK_SPACE) {
             jump = true;
-        }else if(key==KeyEvent.VK_ENTER){
-            enter=true;
+        } else if (key == KeyEvent.VK_ENTER) {
+            enter = true;
         }
     }
 
@@ -394,8 +377,8 @@ public class Game extends JComponent implements KeyListener, MouseMotionListener
             jump = false;
         } else if (key == KeyEvent.VK_SPACE) {
             jump = false;
-        }else if(key==KeyEvent.VK_ENTER){
-            enter=false;
+        } else if (key == KeyEvent.VK_ENTER) {
+            enter = false;
         }
     }
 
@@ -436,15 +419,14 @@ public class Game extends JComponent implements KeyListener, MouseMotionListener
     @Override
     public void mouseExited(MouseEvent e) {
     }
-    
-    
-    public void blockGen(){
-        for(int i =0; i<50;i++){
-            int rbX=(int) (Math.random()*(2500-400+1));
-                blocks.add(new Rectangle(rbX+100,500,30,30));
-            }
+
+    public void blockGen() {
+        for (int i = 0; i < 100; i++) {
+            int rbX = (int) (Math.random() * (2500 - 400 + 1));
+            blocks.add(new Rectangle(rbX + 100, 500, 30, 30));
+
+        }
+
     }
-    
+
 }
-
-
