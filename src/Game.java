@@ -72,7 +72,7 @@ public class Game extends JComponent implements KeyListener, MouseMotionListener
     BufferedImage backG = loadImage("mountain.jpg");
     BufferedImage startS = loadImage("Bhop_mountainzStart2.jpg");
     BufferedImage gameOvr = loadImage("GameOver.jpg");
-    BufferedImage winner = loadImage("winner.jpg");
+   
 
     //image importer
     public static BufferedImage loadImage(String name) {
@@ -110,9 +110,7 @@ public class Game extends JComponent implements KeyListener, MouseMotionListener
             if (enter) {
                 screen = 1;
             }
-        }else if(screen==3){
-           g.drawImage(winner, 0, 0, null);
-       }
+        }
 
         //if screen is equal to 1 main game is displayed
         if (screen == 1) {
@@ -176,10 +174,7 @@ public class Game extends JComponent implements KeyListener, MouseMotionListener
         if (player.x >= 0 && player.y <= 900 && player.y >= 800) {
             screen = 2;
         }
-        //if player reaches x of 2500 or greater and y of 500 winner screen appears
-       if (player.x <= 2500 && player.y ==500) {
-            screen = 3;
-       }
+        
     }
         // GAME DRAWING ENDS HERE
     // The main game loop
